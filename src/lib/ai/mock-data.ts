@@ -10,7 +10,7 @@ import type { CareerAnalysis } from "./types";
  * distinguish "found in resume", "inferred from project", and "not found".
  */
 export const mockAnalysis: CareerAnalysis = {
-  candidateName: "Aisha Sharma",
+  candidateName: "Not Found",
   resumeScore: 82,
   careerReadiness: 78,
   scoreBreakdown: {

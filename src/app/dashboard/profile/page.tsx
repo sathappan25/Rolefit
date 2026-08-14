@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-header";
+import { EvidenceBadge } from "@/components/shared/evidence-badge";
+import { NoAnalysis } from "@/components/shared/no-analysis";
 
 function formatBytes(size: number) {
   if (size < 1024) return `${size} B`;
@@ -15,8 +17,10 @@ function formatBytes(size: number) {
 }
 
 export default function ProfilePage() {
-  const { user, analysis, resumeMeta, resumeFile } = useApp();
-  const name = analysis?.candidateName?.trim() || user.name;
+  const { analysis, resumeMeta, resumeFile } = useApp();
+  const hasName =
+    !!analysis?.candidateName?.trim() && analysis.candidateName !== "Not Found";
+  const name = hasName ? analysis!.candidateName : "Not Found";
 
   const downloadResume = () => {
     if (!resumeFile) return;
@@ -30,6 +34,21 @@ export default function ProfilePage() {
     URL.revokeObjectURL(url);
   };
 
+  if (!analysis) {
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Profile"
+          description="Your personal RoleFit profile will appear after you upload a resume."
+        />
+        <NoAnalysis
+          title="No profile yet"
+          description="Upload your resume to build your RoleFit profile from real resume data."
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <PageHeader title="Profile" description="Your personal RoleFit profile." />
@@ -37,22 +56,16 @@ export default function ProfilePage() {
       <Card>
         <CardContent className="flex flex-col items-center gap-4 p-6 text-center sm:flex-row sm:text-left">
           <span className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">
-            {getInitials(name)}
+            {hasName ? getInitials(name) : "?"}
           </span>
           <div className="flex-1">
             <h2 className="text-xl font-bold text-foreground">{name}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Name sourced from your uploaded resume
-            </p>
+            <div className="mt-2">
+              <EvidenceBadge source={hasName ? "found" : "not-found"} />
+            </div>
             <div className="mt-3 flex flex-wrap justify-center gap-2 sm:justify-start">
-              {analysis ? (
-                <>
-                  <Badge variant="success">Resume analyzed</Badge>
-                  <Badge variant="secondary">Target: {analysis.bestRole.title}</Badge>
-                </>
-              ) : (
-                <Badge variant="muted">No resume analyzed yet</Badge>
-              )}
+              <Badge variant="success">Resume analyzed</Badge>
+              <Badge variant="secondary">Target: {analysis.bestRole.title}</Badge>
             </div>
           </div>
         </CardContent>
@@ -86,43 +99,41 @@ export default function ProfilePage() {
         </Card>
       )}
 
-      {analysis && (
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
-            <CardContent className="flex items-center gap-3 p-5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <FileText className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{analysis.resumeScore}</p>
-                <p className="text-xs text-muted-foreground">Resume Score</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex items-center gap-3 p-5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Target className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{analysis.bestRole.matchScore}%</p>
-                <p className="text-xs text-muted-foreground">Best Role Fit</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex items-center gap-3 p-5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Award className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{analysis.careerReadiness}%</p>
-                <p className="text-xs text-muted-foreground">Career Readiness</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card>
+          <CardContent className="flex items-center gap-3 p-5">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <FileText className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{analysis.resumeScore}</p>
+              <p className="text-xs text-muted-foreground">Resume Score</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 p-5">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Target className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{analysis.bestRole.matchScore}%</p>
+              <p className="text-xs text-muted-foreground">Best Role Fit</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 p-5">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Award className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{analysis.careerReadiness}%</p>
+              <p className="text-xs text-muted-foreground">Career Readiness</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

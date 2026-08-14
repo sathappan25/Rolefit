@@ -82,7 +82,10 @@ export default function ResumeAnalyzerPage() {
               <div>
                 <p className="font-medium text-foreground">You already have an analysis ready</p>
                 <p className="text-sm text-muted-foreground">
-                  {analysis.candidateName} · Resume Score {analysis.resumeScore}/100
+                  {analysis.candidateName !== "Not Found"
+                    ? analysis.candidateName
+                    : "Name not found in resume"}{" "}
+                  · Resume Score {analysis.resumeScore}/100
                   {resumeMeta ? ` · Saved: ${resumeMeta.name}` : ""}
                 </p>
               </div>

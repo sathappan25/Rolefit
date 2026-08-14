@@ -21,17 +21,22 @@ function greeting() {
 
 export default function OverviewPage() {
   const { user, analysis } = useApp();
-  const displayName = analysis?.candidateName?.trim() || user.name || "there";
-  const firstName = displayName.split(" ")[0];
+  const realName =
+    analysis?.candidateName && analysis.candidateName !== "Not Found"
+      ? analysis.candidateName
+      : user.name;
+  const firstName = realName?.trim().split(" ")[0];
 
   return (
     <div className="space-y-8">
       <div className="animate-fade-in-up">
         <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          {greeting()}, {firstName}
+          {firstName ? `${greeting()}, ${firstName}` : greeting()}
         </h1>
         <p className="mt-1 text-muted-foreground">
-          Here&apos;s your current career readiness overview.
+          {analysis
+            ? "Here's your current career readiness overview."
+            : "Upload your resume to see your career readiness overview."}
         </p>
       </div>
 

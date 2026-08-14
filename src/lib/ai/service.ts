@@ -89,11 +89,11 @@ class MockAiProvider implements AiAnalysisProvider {
     await new Promise((r) => setTimeout(r, 600));
 
     // Prefer a name grounded in the uploaded resume filename when available.
-    // Real AI providers should extract candidateName from resume text instead.
+    // Never invent a placeholder person — mark honestly if unknown.
     const extractedName = nameFromResumeFilename(file.name);
     return {
       ...mockAnalysis,
-      candidateName: extractedName || mockAnalysis.candidateName,
+      candidateName: extractedName || "Not Found",
     };
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Trash2, Moon } from "lucide-react";
+import { Trash2, Moon, CheckCircle2 } from "lucide-react";
 import { useApp } from "@/lib/store/app-store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,10 +29,11 @@ function SettingRow({
 }
 
 export default function SettingsPage() {
-  const { clearAnalysis } = useApp();
+  const { analysis, resumeMeta, clearAnalysis } = useApp();
   const [dark, setDark] = React.useState(false);
   const [emailNotif, setEmailNotif] = React.useState(true);
   const [productUpdates, setProductUpdates] = React.useState(false);
+  const [cleared, setCleared] = React.useState(false);
 
   React.useEffect(() => {
     setDark(document.documentElement.classList.contains("dark"));
@@ -46,6 +47,11 @@ export default function SettingsPage() {
     } catch {
       // ignore
     }
+  };
+
+  const handleClear = () => {
+    clearAnalysis();
+    setCleared(true);
   };
 
   return (
@@ -72,21 +78,59 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Saved data</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          {analysis || resumeMeta ? (
+            <>
+              <p>
+                Analysis:{" "}
+                <span className="font-medium text-foreground">
+                  {analysis
+                    ? analysis.candidateName !== "Not Found"
+                      ? analysis.candidateName
+                      : "Resume analyzed (name not found)"
+                    : "None"}
+                </span>
+              </p>
+              <p>
+                Resume file:{" "}
+                <span className="font-medium text-foreground">
+                  {resumeMeta?.name ?? "None"}
+                </span>
+              </p>
+            </>
+          ) : (
+            <p>No resume or analysis saved on this device yet.</p>
+          )}
+        </CardContent>
+      </Card>
+
       <Card className="border-destructive/30">
         <CardHeader>
           <CardTitle className="text-base text-destructive">Danger zone</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm font-medium text-foreground">Clear analysis data</p>
-              <p className="text-sm text-muted-foreground">Remove your current resume analysis from this device.</p>
+              <p className="text-sm text-muted-foreground">
+                Remove your current resume analysis and saved resume from this device.
+              </p>
             </div>
-            <Button variant="outline" size="sm" onClick={clearAnalysis}>
+            <Button variant="outline" size="sm" onClick={handleClear} disabled={!analysis && !resumeMeta}>
               <Trash2 className="h-4 w-4" />
               Clear analysis
             </Button>
           </div>
+          {cleared && !analysis && !resumeMeta && (
+            <p className="flex items-center gap-1.5 text-sm text-success">
+              <CheckCircle2 className="h-4 w-4" />
+              Local analysis and resume data cleared.
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

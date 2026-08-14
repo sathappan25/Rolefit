@@ -18,7 +18,7 @@ export function DashboardPreview() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-muted-foreground">Career Readiness</p>
-            <p className="text-sm font-semibold text-foreground">Aisha Sharma</p>
+            <p className="text-sm font-semibold text-foreground">Sample profile</p>
           </div>
           <Badge variant="success">
             <CheckCircle2 className="h-3 w-3" />

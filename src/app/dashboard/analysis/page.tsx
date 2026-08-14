@@ -26,7 +26,14 @@ export default function AnalysisPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Resume Analysis" description={`Report for ${analysis.candidateName}`} />
+      <PageHeader
+        title="Resume Analysis"
+        description={
+          analysis.candidateName && analysis.candidateName !== "Not Found"
+            ? `Report for ${analysis.candidateName}`
+            : "Report grounded in your uploaded resume"
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
