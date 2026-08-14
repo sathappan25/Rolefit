@@ -1,5 +1,6 @@
 import type { AnalysisStage, CareerAnalysis } from "./types";
 import { mockAnalysis } from "./mock-data";
+import { nameFromResumeFilename } from "@/lib/storage/resume-storage";
 
 /**
  * Provider-agnostic AI analysis contract.
@@ -86,7 +87,14 @@ class MockAiProvider implements AiAnalysisProvider {
     const invalid = validateResumeFile(file);
     if (invalid) throw invalid;
     await new Promise((r) => setTimeout(r, 600));
-    return mockAnalysis;
+
+    // Prefer a name grounded in the uploaded resume filename when available.
+    // Real AI providers should extract candidateName from resume text instead.
+    const extractedName = nameFromResumeFilename(file.name);
+    return {
+      ...mockAnalysis,
+      candidateName: extractedName || mockAnalysis.candidateName,
+    };
   }
 }
 

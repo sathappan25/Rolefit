@@ -17,7 +17,7 @@ type Phase = "idle" | "analyzing" | "error";
 
 export default function ResumeAnalyzerPage() {
   const router = useRouter();
-  const { analysis, analyzeResume } = useApp();
+  const { analysis, analyzeResume, resumeMeta } = useApp();
   const [phase, setPhase] = React.useState<Phase>("idle");
   const [error, setError] = React.useState<string | null>(null);
   const resultReady = React.useRef(false);
@@ -83,6 +83,7 @@ export default function ResumeAnalyzerPage() {
                 <p className="font-medium text-foreground">You already have an analysis ready</p>
                 <p className="text-sm text-muted-foreground">
                   {analysis.candidateName} · Resume Score {analysis.resumeScore}/100
+                  {resumeMeta ? ` · Saved: ${resumeMeta.name}` : ""}
                 </p>
               </div>
             </div>

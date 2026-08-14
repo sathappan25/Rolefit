@@ -9,8 +9,8 @@ import { MobileMenu } from "./mobile-nav";
 import { ThemeToggle } from "./theme-toggle";
 
 export function Topbar() {
-  const { user } = useApp();
-  const name = user?.name ?? "Guest";
+  const { user, analysis } = useApp();
+  const name = analysis?.candidateName?.trim() || user.name || "Candidate";
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-md sm:px-6">

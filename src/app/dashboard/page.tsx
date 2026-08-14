@@ -21,7 +21,8 @@ function greeting() {
 
 export default function OverviewPage() {
   const { user, analysis } = useApp();
-  const firstName = (user?.name ?? "there").split(" ")[0];
+  const displayName = analysis?.candidateName?.trim() || user.name || "there";
+  const firstName = displayName.split(" ")[0];
 
   return (
     <div className="space-y-8">
