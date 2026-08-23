@@ -1,5 +1,12 @@
 import mammoth from "mammoth";
 
+async function extractPdfText(buffer: Buffer): Promise<string> {
+  const { extractText, getDocumentProxy } = await import("unpdf");
+  const pdf = await getDocumentProxy(new Uint8Array(buffer));
+  const { text } = await extractText(pdf, { mergePages: true });
+  return (text ?? "").trim();
+}
+
 export async function extractTextFromBuffer(
   buffer: Buffer,
   filename: string,
@@ -7,14 +14,7 @@ export async function extractTextFromBuffer(
   const ext = filename.toLowerCase().split(".").pop() ?? "";
 
   if (ext === "pdf") {
-    const { PDFParse } = await import("pdf-parse");
-    const parser = new PDFParse({ data: buffer });
-    try {
-      const result = await parser.getText();
-      return (result.text ?? "").trim();
-    } finally {
-      await parser.destroy();
-    }
+    return extractPdfText(buffer);
   }
 
   if (ext === "docx") {

@@ -11,7 +11,7 @@ career roadmap.
 
 - **Next.js 14** (App Router) + **React 18** + **TypeScript**
 - **Tailwind CSS** with a restrained, single-accent design system
-- **pdf-parse** + **mammoth** for real resume text extraction (PDF/DOCX)
+- **unpdf** + **mammoth** for real resume text extraction (PDF/DOCX)
 - **Optional OpenAI** enhancement via `OPENAI_API_KEY`
 - **Vitest** for unit tests
 - **Recharts** for data visualization
@@ -47,7 +47,7 @@ npm run lint     # ESLint
 ### Real resume pipeline
 
 1. **`POST /api/analyze`** — accepts resume file upload
-2. **`extract-text.ts`** — PDF (pdf-parse) / DOCX (mammoth) text extraction
+2. **`extract-text.ts`** — PDF (unpdf) / DOCX (mammoth) text extraction
 3. **`parse-resume.ts`** — extracts name, skills, education, experience, projects from text only
 4. **`build-analysis.ts`** — role matching, scores, gaps, interview plan
 5. **`openai-analyze.ts`** — optional GPT enhancement when `OPENAI_API_KEY` is set
