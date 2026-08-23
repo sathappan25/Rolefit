@@ -11,14 +11,16 @@ career roadmap.
 
 - **Next.js 14** (App Router) + **React 18** + **TypeScript**
 - **Tailwind CSS** with a restrained, single-accent design system
-- **shadcn/ui-style** reusable components (hand-authored, no runtime lock-in)
-- **Lucide** icons
+- **pdf-parse** + **mammoth** for real resume text extraction (PDF/DOCX)
+- **Optional OpenAI** enhancement via `OPENAI_API_KEY`
+- **Vitest** for unit tests
 - **Recharts** for data visualization
 
 ## Getting Started
 
 ```bash
 npm install
+cp .env.example .env.local   # optional: add OPENAI_API_KEY
 npm run dev
 ```
 
@@ -26,43 +28,33 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### Demo flow
 
-1. Landing page → **Get started / Analyze My Resume**
-2. **Resume Analyzer** → upload a PDF/DOC/DOCX → animated analysis
-3. Explore **Analysis**, **My Roles**, **Skill Gaps**, **Interview Prep**,
-   **My Projects**, **Career Roadmap**, and **Improve Resume**
+1. Landing page → **Analyze My Resume**
+2. **Resume Analyzer** → upload a PDF/DOC/DOCX
+3. Backend extracts text, parses skills/experience/projects, matches roles
+4. Explore **Analysis**, **My Roles**, **Skill Gaps**, **Interview Prep**, etc.
+
+### Scripts
+
+```bash
+npm run dev      # development server
+npm run build    # production build
+npm run test     # unit tests
+npm run lint     # ESLint
+```
 
 ## Architecture
 
-The UI is fully decoupled from any AI provider.
+### Real resume pipeline
 
-- `src/lib/ai/types.ts` — the structured data contract the UI consumes.
-- `src/lib/ai/service.ts` — a provider-agnostic `AiAnalysisProvider` interface,
-  file validation, analysis stages, and human-readable error handling.
-- `src/lib/ai/mock-data.ts` — **development-only** mock data, clearly isolated.
-- `src/lib/store/app-store.tsx` — client analysis state with persistence.
+1. **`POST /api/analyze`** — accepts resume file upload
+2. **`extract-text.ts`** — PDF (pdf-parse) / DOCX (mammoth) text extraction
+3. **`parse-resume.ts`** — extracts name, skills, education, experience, projects from text only
+4. **`build-analysis.ts`** — role matching, scores, gaps, interview plan
+5. **`openai-analyze.ts`** — optional GPT enhancement when `OPENAI_API_KEY` is set
 
-### Plugging in a real AI backend
+The UI consumes a typed `CareerAnalysis` contract via `createApiAiProvider()`.
 
-Implement the interface and register it — no UI changes required:
-
-```ts
-import { setAiProvider, type AiAnalysisProvider } from "@/lib/ai/service";
-import type { CareerAnalysis } from "@/lib/ai/types";
-
-class RealAiProvider implements AiAnalysisProvider {
-  async analyzeResume(file: File): Promise<CareerAnalysis> {
-    const body = new FormData();
-    body.append("resume", file);
-    const res = await fetch("/api/analyze", { method: "POST", body });
-    if (!res.ok) throw new Error("analysis-failure");
-    return res.json();
-  }
-}
-
-setAiProvider(new RealAiProvider());
-```
-
-## AI Grounding Rules
+### AI grounding rules
 
 RoleFit never invents skills, companies, projects, certifications, experience, or
 education. Every extracted item is labeled honestly:
@@ -71,25 +63,21 @@ education. Every extracted item is labeled honestly:
 - **Inferred from Project**
 - **Not Found**
 
-## Responsive & Accessible
+### Environment variables
 
-- Desktop sidebar, tablet-friendly layout, mobile hamburger + bottom navigation.
-- Semantic HTML, keyboard navigation, ARIA labels, visible focus states, good contrast.
+| Variable | Required | Description |
+|---|---|---|
+| `OPENAI_API_KEY` | No | Enables optional GPT-enhanced analysis |
+| `OPENAI_MODEL` | No | Default: `gpt-4o-mini` |
 
 ## Project Structure
 
 ```
 src/
-  app/                # routes (landing and dashboard/*)
-  components/
-    ui/               # reusable primitives (button, card, tabs, ...)
-    layout/           # sidebar, topbar, mobile nav
-    landing/          # landing page sections
-    dashboard/        # dashboard domain components
-    analyzer/         # resume upload + analysis states
-    interview/        # interview question components
-    shared/           # page header, empty states, badges
+  app/api/analyze/     # resume analysis API route
   lib/
-    ai/               # types, service abstraction, mock data
-    store/            # client app store
+    resume/            # text extraction, parsing, analysis engine
+    ai/                # types, API provider, service
+    storage/           # IndexedDB resume persistence
+  components/          # UI components
 ```
