@@ -66,6 +66,7 @@ export async function POST(request: Request) {
     try {
       text = await extractTextFromBuffer(buffer, file.name);
     } catch (err) {
+      console.error("[analyze] text extraction failed:", err);
       const key = err instanceof Error && ERROR_MAP[err.message] ? err.message : "parse-failure";
       const mapped = ERROR_MAP[key] ?? ERROR_MAP["parse-failure"];
       return NextResponse.json({ code: mapped.code, message: mapped.message }, { status: mapped.status });
