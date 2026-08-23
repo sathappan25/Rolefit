@@ -7,6 +7,7 @@ import { DashboardPreview } from "./dashboard-preview";
 export function Hero() {
   return (
     <section className="relative overflow-hidden">
+      <div className="absolute inset-0 -z-10 gradient-orb" aria-hidden="true" />
       <div className="absolute inset-0 -z-10 grid-pattern opacity-[0.6] [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]" />
       <div className="container grid items-center gap-12 py-16 lg:grid-cols-2 lg:gap-8 lg:py-24">
         <div className="animate-fade-in-up">
