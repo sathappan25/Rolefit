@@ -7,10 +7,14 @@ export async function extractTextFromBuffer(
   const ext = filename.toLowerCase().split(".").pop() ?? "";
 
   if (ext === "pdf") {
-    // pdf-parse has a known test-file side effect; use dynamic import in Node only.
-    const pdfParse = (await import("pdf-parse")).default;
-    const result = await pdfParse(buffer);
-    return (result.text ?? "").trim();
+    const { PDFParse } = await import("pdf-parse");
+    const parser = new PDFParse({ data: buffer });
+    try {
+      const result = await parser.getText();
+      return (result.text ?? "").trim();
+    } finally {
+      await parser.destroy();
+    }
   }
 
   if (ext === "docx") {
