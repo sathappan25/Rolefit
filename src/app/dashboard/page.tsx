@@ -10,6 +10,10 @@ import { buttonVariants } from "@/components/ui/button";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { BestRoleCard } from "@/components/dashboard/best-role-card";
 import { RoleCard } from "@/components/dashboard/role-card";
+import { QuickActions } from "@/components/dashboard/quick-actions";
+import { NextSteps } from "@/components/dashboard/next-steps";
+import { SkillGapPreview } from "@/components/dashboard/skill-gap-preview";
+import { ActivityTimeline } from "@/components/dashboard/activity-timeline";
 import { NoAnalysis } from "@/components/shared/no-analysis";
 
 function greeting() {
@@ -20,7 +24,7 @@ function greeting() {
 }
 
 export default function OverviewPage() {
-  const { user, analysis } = useApp();
+  const { user, analysis, resumeMeta, preparedQuestions } = useApp();
   const realName =
     analysis?.candidateName && analysis.candidateName !== "Not Found"
       ? analysis.candidateName
@@ -28,7 +32,7 @@ export default function OverviewPage() {
   const firstName = realName?.trim().split(" ")[0];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 page-enter">
       <div className="animate-fade-in-up">
         <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           {firstName ? `${greeting()}, ${firstName}` : greeting()}
@@ -40,12 +44,14 @@ export default function OverviewPage() {
         </p>
       </div>
 
+      <QuickActions />
+
       {!analysis ? (
         <NoAnalysis />
       ) : (
         <>
           <div className="grid gap-6 lg:grid-cols-3">
-            <Card className="lg:col-span-1">
+            <Card className="lg:col-span-1 hover-lift">
               <CardHeader>
                 <CardTitle className="text-base">Career Readiness</CardTitle>
               </CardHeader>
@@ -79,6 +85,18 @@ export default function OverviewPage() {
             <StatCard label="Interview Ready" value={analysis.readiness.interviewReadiness} suffix="%" icon={Award} hint="Prep completion" />
           </div>
 
+          <div className="grid gap-6 lg:grid-cols-2">
+            <NextSteps analysis={analysis} preparedCount={preparedQuestions.length} />
+            <SkillGapPreview gaps={analysis.skillGaps} />
+          </div>
+
+          <ActivityTimeline
+            analysis={analysis}
+            resumeMeta={resumeMeta}
+            preparedCount={preparedQuestions.length}
+            totalQuestions={analysis.interviewQuestions.length}
+          />
+
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -97,7 +115,7 @@ export default function OverviewPage() {
             </div>
           </section>
 
-          <Card className="bg-primary/5">
+          <Card className="bg-primary/5 hover-lift">
             <CardContent className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
