@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, CalendarDays, Sparkles } from "lucide-react";
 import { CheckCircle2 } from "lucide-react";
 import { useApp } from "@/lib/store/app-store";
 import { Card, CardContent } from "@/components/ui/card";
@@ -49,12 +49,34 @@ function filterQuestions(
   });
 }
 
+function formatDailyDate(dateKey: string | null): string {
+  if (!dateKey) return "Today";
+  const [y, m, d] = dateKey.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 export default function InterviewPrepPage() {
-  const { analysis, preparedQuestions } = useApp();
+  const {
+    analysis,
+    preparedQuestions,
+    dailyQuestions,
+    dailyQuestionsDate,
+    dailyRoleTitle,
+    dailyLoading,
+    ensureDailyQuestions,
+  } = useApp();
   const [query, setQuery] = React.useState("");
   const [difficulty, setDifficulty] = React.useState<DifficultyFilter>("all");
   const [status, setStatus] = React.useState<StatusFilter>("all");
   const [showFilters, setShowFilters] = React.useState(false);
+
+  React.useEffect(() => {
+    if (analysis) void ensureDailyQuestions();
+  }, [analysis, ensureDailyQuestions]);
 
   if (!analysis) {
     return (
@@ -65,18 +87,42 @@ export default function InterviewPrepPage() {
     );
   }
 
-  const total = analysis.interviewQuestions.length;
-  const preparedCount = analysis.interviewQuestions.filter((q) =>
-    preparedQuestions.includes(q.id),
-  ).length;
+  const questions = dailyQuestions;
+  const total = questions.length;
+  const preparedCount = questions.filter((q) => preparedQuestions.includes(q.id)).length;
   const progress = total ? Math.round((preparedCount / total) * 100) : 0;
 
   return (
     <div className="space-y-8 page-enter">
       <PageHeader
         title="Interview Prep"
-        description="Practice personalized questions grounded in your resume and target role."
+        description="Fresh practice questions every day for your best-fit role."
       />
+
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+              <Sparkles className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="font-semibold text-foreground">Today&apos;s Practice Set</p>
+              <p className="text-sm text-muted-foreground">
+                {dailyLoading
+                  ? "Generating today's questions..."
+                  : `${total} questions for ${dailyRoleTitle ?? analysis.bestRole.title}`}
+              </p>
+              <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <CalendarDays className="h-3.5 w-3.5" />
+                {formatDailyDate(dailyQuestionsDate)} · Refreshes tomorrow
+              </p>
+            </div>
+          </div>
+          <Badge variant="secondary" className="w-fit shrink-0">
+            Auto-generated daily
+          </Badge>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -88,7 +134,7 @@ export default function InterviewPrepPage() {
               <p className="font-semibold text-foreground">
                 {preparedCount} of {total} questions prepared
               </p>
-              <p className="text-sm text-muted-foreground">Keep going — mark questions as you practice.</p>
+              <p className="text-sm text-muted-foreground">Mark questions as you practice today.</p>
             </div>
           </div>
           <div className="w-full sm:w-64">
@@ -102,7 +148,7 @@ export default function InterviewPrepPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search questions, topics, or projects..."
+            placeholder="Search today's questions..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="pl-9"
@@ -153,52 +199,58 @@ export default function InterviewPrepPage() {
         </div>
       )}
 
-      <Tabs defaultValue="technical">
-        <TabsList className="w-full overflow-x-auto">
+      {dailyLoading && questions.length === 0 ? (
+        <div className="rounded-xl border border-dashed py-16 text-center text-sm text-muted-foreground">
+          Generating today&apos;s questions for {analysis.bestRole.title}...
+        </div>
+      ) : (
+        <Tabs defaultValue="technical">
+          <TabsList className="w-full overflow-x-auto">
+            {tabs.map((t) => {
+              const count = filterQuestions(
+                questions.filter((q) => q.category === t.value),
+                query,
+                difficulty,
+                status,
+                preparedQuestions,
+              ).length;
+              return (
+                <TabsTrigger key={t.value} value={t.value} className="gap-1.5">
+                  {t.label}
+                  <Badge variant="secondary" className="text-[10px]">
+                    {count}
+                  </Badge>
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
+
           {tabs.map((t) => {
-            const count = filterQuestions(
-              analysis.interviewQuestions.filter((q) => q.category === t.value),
+            const filtered = filterQuestions(
+              questions.filter((q) => q.category === t.value),
               query,
               difficulty,
               status,
               preparedQuestions,
-            ).length;
+            );
             return (
-              <TabsTrigger key={t.value} value={t.value} className="gap-1.5">
-                {t.label}
-                <Badge variant="secondary" className="text-[10px]">
-                  {count}
-                </Badge>
-              </TabsTrigger>
+              <TabsContent key={t.value} value={t.value}>
+                {filtered.length === 0 ? (
+                  <div className="rounded-xl border border-dashed py-12 text-center text-sm text-muted-foreground">
+                    No questions in this category today. Check another tab or come back tomorrow.
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {filtered.map((q, i) => (
+                      <QuestionCard key={q.id} question={q} index={i + 1} />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
             );
           })}
-        </TabsList>
-
-        {tabs.map((t) => {
-          const questions = filterQuestions(
-            analysis.interviewQuestions.filter((q) => q.category === t.value),
-            query,
-            difficulty,
-            status,
-            preparedQuestions,
-          );
-          return (
-            <TabsContent key={t.value} value={t.value}>
-              {questions.length === 0 ? (
-                <div className="rounded-xl border border-dashed py-12 text-center text-sm text-muted-foreground">
-                  No questions match your search. Try adjusting filters.
-                </div>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {questions.map((q, i) => (
-                    <QuestionCard key={q.id} question={q} index={i + 1} />
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-          );
-        })}
-      </Tabs>
+        </Tabs>
+      )}
     </div>
   );
 }
