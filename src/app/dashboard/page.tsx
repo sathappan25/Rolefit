@@ -24,7 +24,7 @@ function greeting() {
 }
 
 export default function OverviewPage() {
-  const { user, analysis, resumeMeta, preparedQuestions } = useApp();
+  const { user, analysis, resumeMeta, preparedQuestions, dailyQuestions } = useApp();
   const realName =
     analysis?.candidateName && analysis.candidateName !== "Not Found"
       ? analysis.candidateName
@@ -94,7 +94,7 @@ export default function OverviewPage() {
             analysis={analysis}
             resumeMeta={resumeMeta}
             preparedCount={preparedQuestions.length}
-            totalQuestions={analysis.interviewQuestions.length}
+            totalQuestions={dailyQuestions.length || analysis.interviewQuestions.length}
           />
 
           <section className="space-y-4">
